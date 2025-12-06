@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Particles Page 2 - I</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --bg:#e6e7e8;
+      --panel:#d1d3d4;
+      --black:#0b0b0b;
+      --white:#ffffff;
+      --red:#d62828;
+      --muted:#7a7a7a;
+      --font: "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:var(--font);background:var(--bg);color:var(--black)}
+    .container{max-width:1200px;margin:18px auto;padding:12px}
+    .header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .title{font-size:1.15rem;font-weight:700;color:var(--black)}
+    .links a{color:var(--black);text-decoration:none;padding:6px 10px;border-radius:6px;background:transparent;border:1px solid rgba(0,0,0,0.06)}
+    .links a:hover{background:var(--black);color:var(--white)}
+    .canvas-wrap{background:linear-gradient(180deg, rgba(11,11,11,0.02), rgba(0,0,0,0.04)); padding:12px;border-radius:10px;box-shadow:0 8px 30px rgba(11,11,11,0.08)}
+    canvas{display:block;width:100%;height:70vh;border-radius:8px;background:var(--panel)}
+    .controls{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+    .small{font-size:0.85rem;color:var(--muted)}
+    .footer{margin-top:12px;font-size:0.85rem;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    @media (max-width:640px){
+      .header{flex-direction:column;align-items:flex-start}
+      canvas{height:55vh}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <div class="title">Second Page — Radial Orbit Animation</div>
+        <div class="small">Extra credit: different animation, same color scheme — <span style="color:var(--red);font-weight:600">I</span></div>
+      </div>
+      <div class="links">
+        <a href="I.htm">Main Page</a>
+      </div>
+    </div>
+
+    <div class="canvas-wrap" style="margin-top:12px">
+      <canvas id="canvas2"></canvas>
+      <div class="controls">
+        <div class="small">Particles orbit a center point and pulse</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="small">Make sure both pages are published and link to each other.</div>
+      <div class="small">File: I.page2.htm</div>
+    </div>
+  </div>
+
+  <script>
+    // Radial orbiting particles for I.page2.htm
+
+    const canvas2 = document.getElementById('canvas2');
+    const ctx2 = canvas2.getContext('2d');
+
+    let orbits = [];
+    let anim2 = null;
+
+    function resizeCanvas2() {
+      const ratio = window.devicePixelRatio || 1;
+      const rect = canvas2.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width * ratio));
+      const h = Math.max(1, Math.floor(rect.height * ratio));
+      if (canvas2.width !== w || canvas2.height !== h) {
+        canvas2.width = w;
+        canvas2.height = h;
+        createOrbits();
+      }
+    }
+    window.addEventListener('resize', () => {
+      clearTimeout(window._resizeTO2);
+      window._resizeTO2 = setTimeout(resizeCanvas2, 120);
+    });
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randColor() {
+      const r = Math.random();
+      if (r < 0.55) return getComputedStyle(document.documentElement).getPropertyValue('--red').trim();
+      if (r < 0.85) return getComputedStyle(document.documentElement).getPropertyValue('--black').trim();
+      return getComputedStyle(document.documentElement).getPropertyValue('--white').trim();
+    }
+
+    class OrbitParticle {
+      constructor(cx, cy, radius, angle, speed, color, size) {
+        this.cx = cx; this.cy = cy;
+        this.radius = radius;
+        this.angle = angle;
+        this.speed = speed;
+        this.color = color;
+        this.size = size * (devicePixelRatio || 1);
+        this.baseSize = this.size;
+      }
+      update(t) {
+        this.angle += this.speed;
+        const pulse = 1 + Math.sin(t * 0.002 + this.angle * 2) * 0.15;
+        this.size += (this.baseSize * pulse - this.size) * 0.08;
+        this.x = this.cx + Math.cos(this.angle) * this.radius;
+        this.y = this.cy + Math.sin(this.angle) * this.radius;
+      }
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, Math.max(0.6, this.size), 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    function createOrbits() {
+      orbits = [];
+      const w = canvas2.width;
+      const h = canvas2.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const rings = 6;
+      for (let r = 1; r <= rings; r++) {
+        const count = 8 + r * 6;
+        const radius = Math.min(w, h) * (0.08 + r * 0.09);
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.PI * 2 / count) * i + rand(-0.2, 0.2);
+          const speed = rand(0.002, 0.01) * (r % 2 === 0 ? 1 : -1);
+          const color = randColor();
+          const size = rand(2.5, 6.5);
+          orbits.push(new OrbitParticle(cx, cy, radius, angle, speed, color, size));
+        }
+      }
+    }
+
+    function animate2(t) {
+      ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+
+      const g = ctx2.createRadialGradient(canvas2.width/2, canvas2.height/2, 10, canvas2.width/2, canvas2.height/2, Math.max(canvas2.width, canvas2.height));
+      g.addColorStop(0, 'rgba(255,255,255,0.02)');
+      g.addColorStop(1, 'rgba(2,6,23,0.06)');
+      ctx2.fillStyle = g;
+      ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
+
+      for (const p of orbits) {
+        p.update(t);
+        p.draw(ctx2);
+      }
+
+      anim2 = requestAnimationFrame(animate2);
+    }
+
+    (function init2() {
+      canvas2.style.width = '100%';
+      canvas2.style.height = '70vh';
+      resizeCanvas2();
+      createOrbits();
+      animate2(performance.now());
+    })();
+  </script>
+</body>
+</html>
